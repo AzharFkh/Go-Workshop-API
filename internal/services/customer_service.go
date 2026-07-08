@@ -6,11 +6,13 @@ import (
 	"go_bengkel/internal/models"
 	"go_bengkel/internal/repository"
 	"go_bengkel/internal/utils"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // revisi :
 
-type UserService interface{
+type UserService interface {
 	CreateUser(req dto.UserRegister) (*models.User, error)
 	GetUsers() ([]models.User, error)
 	GetUserByID(id int) (*models.User, error)
@@ -18,19 +20,26 @@ type UserService interface{
 	Login(req dto.UserLogin) (string, error)
 }
 
-type userService struct{
+type userService struct {
 	repo repository.UserRepository
 }
 
-// constructor 
+// constructor
 
 func NewUserService(repo repository.UserRepository) UserService {
 	return &userService{repo}
 }
 
+// login
+
 func (s *userService) Login(req dto.UserLogin) (string, error) {
 	user, err := s.repo.FindByEmail(req.Email)
 
+	if err != nil {
+		return "", errors.New("invalid email or password")
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
 		return "", errors.New("invalid email or password")
 	}
@@ -43,14 +52,24 @@ func (s *userService) Login(req dto.UserLogin) (string, error) {
 	return token, nil
 }
 
+// create user
 
 func (s *userService) CreateUser(req dto.UserRegister) (*models.User, error) {
-	user := models.User {
-		Name: req.Name,
-		Email: req.Email,
-		Password: req.Password,
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return nil, err
 	}
 
+	// masukan password ke req
+	user := models.User{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: string(hashedPassword),
+	}
+
+	// kirim ke DB
 	if err := s.repo.Create(&user); err != nil {
 		return nil, err
 	}
@@ -58,19 +77,25 @@ func (s *userService) CreateUser(req dto.UserRegister) (*models.User, error) {
 	return &user, nil
 }
 
+// get users
+
 func (s *userService) GetUsers() ([]models.User, error) {
 	return s.repo.FindAll()
 }
+
+// get user by id
 
 func (s *userService) GetUserByID(id int) (*models.User, error) {
 	return s.repo.FindByID(id)
 }
 
+// delete user by id
+
 func (s *userService) DeleteUserByID(id int) error {
 	// mencari apakah user ada (tidak asal hapus)
 	user, err := s.repo.FindByID(id)
 
-	if err != nil{
+	if err != nil {
 		return err
 	}
 

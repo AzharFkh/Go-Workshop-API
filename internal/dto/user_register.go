@@ -4,7 +4,6 @@ import (
 	"go_bengkel/internal/models"
 )
 
-// belum hashing
 
 type UserRegister struct {
 	Name     string `json:"name" binding:"required"`

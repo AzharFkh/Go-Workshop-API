@@ -15,7 +15,7 @@ type UserHandler struct {
 	userService services.UserService
 }
 
-func NewUserHandler(userService services.UserService) *UserHandler{
+func NewUserHandler(userService services.UserService) *UserHandler {
 	return &UserHandler{userService}
 }
 
@@ -39,7 +39,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "login success",
-		"token": token,
+		"token":   token,
 	})
 }
 
@@ -56,12 +56,13 @@ func (h *UserHandler) Create(c *gin.Context) {
 		return
 	}
 
+	response := dto.ToUserResponse(*user)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "user created",
-		"user": user,
+		"user":    response,
 	})
 }
-
 
 func (h *UserHandler) FindAll(c *gin.Context) {
 	users, err := h.userService.GetUsers()
@@ -70,16 +71,18 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 			"error": err.Error(),
 		})
 	}
-	
+
+	response := dto.ToUserResponses(users)
+
 	c.JSON(http.StatusOK, gin.H{
-		"users": users,
+		"users": response,
 	})
 }
 
 func (h *UserHandler) FindByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 
-	if err != nil{
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid id",
 		})
@@ -87,13 +90,13 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 	}
 
 	user, err := h.userService.GetUserByID(id)
-	if err != nil{
+	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "user not found",
 		})
 		return
 	}
-	
+
 	response := dto.ToUserResponse(*user)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -103,7 +106,7 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 
 func (h *UserHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil{
+	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid id",
 		})
@@ -111,7 +114,7 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	}
 
 	if err := h.userService.DeleteUserByID(id); err != nil {
-		
+
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{
 				"error": "user not found",
