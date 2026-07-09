@@ -2,8 +2,10 @@ package models
 
 import "gorm.io/gorm"
 
-type VehicleData struct {
+type Vehicle struct {
 	gorm.Model
+
+	// Foreign Key ke tabel users
 	UserID uint `json:"user_id"`
 	PlateNum string `json:"plate_num" gorm:"uniqueIndex"`
 	Range int `json:"range"`

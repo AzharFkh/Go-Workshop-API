@@ -13,11 +13,11 @@ import (
 var jwtSecret = []byte(os.Getenv("JWT_secret"))
 
 type JWTClaim struct {
-	UserID int `json:"user_id"`
+	UserID uint `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateToken(userID int) (string, error) {
+func GenerateToken(userID uint) (string, error) {
 	expirationTime := time.Now().Add(2 * time.Hour)
 
 	claims := &JWTClaim{

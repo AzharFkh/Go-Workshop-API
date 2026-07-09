@@ -44,7 +44,7 @@ func (s *userService) Login(req dto.UserLogin) (string, error) {
 		return "", errors.New("invalid email or password")
 	}
 
-	token, err := utils.GenerateToken(int(user.ID))
+	token, err := utils.GenerateToken(user.ID)
 	if err != nil {
 		return "", err
 	}

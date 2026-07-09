@@ -21,6 +21,10 @@ func main() {
 	userService := services.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 
+	vehicleRepo := repository.NewVehicleRepository(db)
+	vehicleService := services.NewVehicleService(vehicleRepo)
+	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
+
 	r := gin.Default()
 
 	public := r.Group("/users")
@@ -29,12 +33,18 @@ func main() {
 		public.POST("/login", userHandler.Login)
 	}
 
-	protected := r.Group("/users")
-	protected.Use(middleware.AuthMiddleware())
+	userRoute := r.Group("/users")
+	userRoute.Use(middleware.AuthMiddleware())
 	{
-		protected.GET("/", userHandler.FindAll)
-		protected.GET("/:id", userHandler.FindByID)
-		protected.DELETE("/:id", userHandler.Delete)
+		userRoute.GET("/", userHandler.FindAll)
+		userRoute.GET("/:id", userHandler.FindByID)
+		userRoute.DELETE("/:id", userHandler.Delete)
+	}
+
+	vehicleRoute := r.Group("/vehicle")
+	vehicleRoute.Use(middleware.AuthMiddleware())
+	{
+		vehicleRoute.POST("/", vehicleHandler.Create)
 	}
 
 	r.Run(":8600")

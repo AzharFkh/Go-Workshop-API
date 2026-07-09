@@ -1,5 +1,56 @@
 package handlers
 
-// import "github.com/gin-gonic/gin"
+import (
+	"go_bengkel/internal/dto"
+	"go_bengkel/internal/services"
+	"net/http"
 
-// func VehicleCreate(c *gin.Context) 
+	"github.com/gin-gonic/gin"
+)
+
+type VehicleHandler struct {
+	vehicleService services.VehicleService
+}
+
+func NewVehicleHandler(vehicleService services.VehicleService) *VehicleHandler {
+	return &VehicleHandler{vehicleService}
+}
+
+func (h *VehicleHandler) Create(c *gin.Context) {
+
+	userIDRaw, exist := c.Get("userID")
+
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
+
+	userID := userIDRaw.(uint)
+
+	var req dto.VehicleRegister
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	vehicle, err := h.vehicleService.CreateVehicle(req, userID)
+
+	if err != nil {
+		c.JSON(http.StatusConflict, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// optional response
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "vehicle added",
+		"vehicle": vehicle,
+	})
+}

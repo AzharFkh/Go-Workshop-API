@@ -13,7 +13,7 @@ type User struct {
 	Password string `json:"password" binding:"required"`
 
 	// one to many
-	Vehicle []VehicleData `json:"vehicle" gorm:"foreignKey:UserID"`
+	Vehicle []Vehicle `json:"vehicle" gorm:"foreignKey:UserID"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) error {
