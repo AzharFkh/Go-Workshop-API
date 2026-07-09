@@ -48,10 +48,11 @@ func (h *VehicleHandler) Create(c *gin.Context) {
 	}
 
 	// optional response
+	response := dto.ToVehicleResponse(*vehicle)
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "vehicle added",
-		"vehicle": vehicle,
+		"vehicle": response,
 	})
 }
 
