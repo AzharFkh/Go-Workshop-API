@@ -54,3 +54,30 @@ func (h *VehicleHandler) Create(c *gin.Context) {
 		"vehicle": vehicle,
 	})
 }
+
+func (h *VehicleHandler) FindAll(c *gin.Context) {
+
+	userIDRaw, exist := c.Get("userID")
+
+	if !exist {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "Unauthorized",
+		})
+		return
+	}
+
+	userID := userIDRaw.(uint)
+
+	vehicles, err := h.vehicleService.GetVehicle(uint(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+	}
+
+	responses := dto.ToVehicleResponses(vehicles)
+
+	c.JSON(http.StatusOK, gin.H{
+		"vehicles": responses,
+	})
+}

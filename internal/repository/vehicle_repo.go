@@ -9,7 +9,7 @@ import (
 
 type VehicleRepository interface {
 	Create(vehicle *models.Vehicle) error
-	//FindAll
+	FindAll(userID uint) ([]models.Vehicle, error)
 	// tambah query lainnya
 }
 
@@ -23,5 +23,16 @@ func NewVehicleRepository(db *gorm.DB) VehicleRepository{
 
 func (r *vehicleRepository) Create(vehicle *models.Vehicle) error {
 	return r.db.Create(vehicle).Error
+}
+
+func (r *vehicleRepository) FindAll(userID uint) ([]models.Vehicle, error) {
+	
+	var vehicles []models.Vehicle
+
+	if err := r.db.Where("user_id = ?", userID).Find(&vehicles).Error; err != nil {
+		return nil, err
+	}
+
+	return vehicles, nil 
 }
 

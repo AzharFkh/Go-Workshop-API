@@ -45,6 +45,7 @@ func main() {
 	vehicleRoute.Use(middleware.AuthMiddleware())
 	{
 		vehicleRoute.POST("/", vehicleHandler.Create)
+		vehicleRoute.GET("/", vehicleHandler.FindAll)
 	}
 
 	r.Run(":8600")

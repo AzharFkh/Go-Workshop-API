@@ -10,7 +10,7 @@ import (
 
 type VehicleService interface {
 	CreateVehicle(req dto.VehicleRegister, userID uint) (*models.Vehicle, error)
-	// GetVehicle(userID uint) ([]models.Vehicle, error)
+	GetVehicle(userID uint) ([]models.Vehicle, error)
 	// GetVehicleByID(id uint, userID uint) (*models.Vehicle, error)
 	// DeleteVehicleByID(id uint, userID uint) error
 }
@@ -38,4 +38,9 @@ func (s *vehicleService) CreateVehicle(req dto.VehicleRegister, userID uint) (*m
 	}
 
 	return &vehicle, nil
+}
+
+func (s *vehicleService) GetVehicle(userID uint) ([]models.Vehicle, error){
+
+	return s.repo.FindAll(userID)
 }
