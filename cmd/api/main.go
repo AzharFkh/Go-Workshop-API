@@ -25,15 +25,19 @@ func main() {
 	vehicleService := services.NewVehicleService(vehicleRepo)
 	vehicleHandler := handlers.NewVehicleHandler(vehicleService)
 
+	dataServiceRepo := repository.NewServicesRepository(db)
+	dataServiceService := services.NewDataService(dataServiceRepo, vehicleRepo)
+	dataServiceHandler := handlers.NewServicesHandler(dataServiceService)
+
 	r := gin.Default()
 
-	public := r.Group("/users")
+	public := r.Group("api/users")
 	{
 		public.POST("/", userHandler.Create)
 		public.POST("/login", userHandler.Login)
 	}
 
-	userRoute := r.Group("/users")
+	userRoute := r.Group("api/users")
 	userRoute.Use(middleware.AuthMiddleware())
 	{
 		userRoute.GET("/", userHandler.FindAll)
@@ -41,12 +45,18 @@ func main() {
 		userRoute.DELETE("/:id", userHandler.Delete)
 	}
 
-	vehicleRoute := r.Group("/vehicle")
+	vehicleRoute := r.Group("api/vehicle")
 	vehicleRoute.Use(middleware.AuthMiddleware())
 	{
 		vehicleRoute.POST("/", vehicleHandler.Create)
 		vehicleRoute.GET("/", vehicleHandler.FindAll)
+
+		vehicleRoute.POST("/:vehicle_id/dataservice", dataServiceHandler.Create)
+		vehicleRoute.GET("/:vehicle_id/dataservice", dataServiceHandler.FindAll)
+
 	}
+	// PR: tambahin validasi pada data service
+	// PR: perbaiki service handler
 
 	r.Run(":8600")
 }

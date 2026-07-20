@@ -6,9 +6,9 @@ import (
 	"gorm.io/gorm"
 )
 
-
 type ServiceRepository interface {
-	GetServicesByUserAndVehicle(userID uint, vehicleID uint) ([]models.DataService, error)
+	Create(dataService *models.DataService) error
+	FindAll(userID uint, vehicleID uint) ([]models.DataService, error)
 }
 
 type serviceRepository struct {
@@ -19,13 +19,17 @@ func NewServicesRepository(db *gorm.DB) ServiceRepository {
 	return &serviceRepository{db}
 }
 
-func (r *serviceRepository) GetServicesByUserAndVehicle(userID uint, VehicleID uint) ([]models.DataService, error) {
+func (r *serviceRepository) Create(dataService *models.DataService) error {
+	return r.db.Create(dataService).Error
+}
+
+func (r *serviceRepository) FindAll(userID uint, vehicleID uint) ([]models.DataService, error) {
 	var services []models.DataService
 
 	err := r.db.Table("data_services").
-		Select("data_services.*"). 
-		Joins("JOIN vehicle_data ON vehicle_data.id = data_services.vehicle_id"). 
-		Where("vehicle_data.user_id = ? AND data_services.vehicle_id = ?", userID, VehicleID). 
+		Select("data_services.*").
+		Joins("JOIN vehicles ON vehicles.id = data_services.vehicle_id").
+		Where("vehicles.user_id = ? AND data_services.vehicle_id = ?", userID, vehicleID).
 		Find(&services).Error
 
 	if err != nil {
