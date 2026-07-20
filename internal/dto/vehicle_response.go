@@ -3,19 +3,21 @@ package dto
 import "go_bengkel/internal/models"
 
 type VehicleResponse struct {
-	UserID       uint   `json:"user_id" binding:"required"`
-	PlateNum     string `json:"plate_num" binding:"required"`
-	Range        int	`json:"range" binding:"required"`
-	Vehicle_Type string `json:"vehicle_type" binding:"required"`
+	ID          uint   `json:"vehicle_id"`
+	UserID      uint   `json:"user_id" binding:"required"`
+	PlateNum    string `json:"plate_num" binding:"required"`
+	Range       int    `json:"range" binding:"required"`
+	VehicleType string `json:"vehicle_type" binding:"required"`
 }
 
 func ToVehicleResponse(vehicle models.Vehicle) VehicleResponse {
 
 	return VehicleResponse{
-		UserID:       vehicle.UserID,
-		PlateNum:     vehicle.PlateNum,
-		Range:        vehicle.Range,
-		Vehicle_Type: vehicle.Vehicle_Type,
+		ID:          vehicle.ID,
+		UserID:      vehicle.UserID,
+		PlateNum:    vehicle.PlateNum,
+		Range:       vehicle.Range,
+		VehicleType: vehicle.Vehicle_Type,
 	}
 }
 

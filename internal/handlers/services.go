@@ -55,9 +55,12 @@ func (h *ServicesHandler) Create(c *gin.Context) {
 		})
 		return
 	}
+
+	responseDTO := dto.ToDataServiceResponse(*dataService)
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "data service is created",
-		"data":    dataService,
+		"data":    responseDTO,
 	})
 }
 
