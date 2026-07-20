@@ -42,7 +42,6 @@ func (s *dataService) CreateDataService(req dto.DataServiceRegister, userID uint
 	}
 
 	return &dataService, nil
-
 }
 
 func (s *dataService) GetDataServices(userID uint, vehicleID uint) ([]models.DataService, error) {

@@ -65,5 +65,38 @@ func (h *ServicesHandler) Create(c *gin.Context) {
 }
 
 func (h *ServicesHandler) FindAll(c *gin.Context) {
+	userIDRaw, exists := c.Get("userID")
 
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": "unauthorized",
+		})
+		return
+	}
+
+	userID := userIDRaw.(uint)
+
+	vehicleIDStr := c.Param("vehicle_id")
+	vehicleID, err := strconv.Atoi(vehicleIDStr)
+
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid vehicle id",
+		})
+		return
+	}
+	servicesData, err := h.dataService.GetDataServices(userID, uint(vehicleID))
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	responses := dto.ToDataServiceResponses(servicesData)
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": responses,
+	})
 }
