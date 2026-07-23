@@ -28,7 +28,7 @@ func (h *ServicesHandler) GetID(c *gin.Context) (uint, uint, bool) {
 
 	vehicleID, err := strconv.Atoi(c.Param("vehicle_id"))
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
+		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid vehicle_id",
 		})
 		return 0, 0, false

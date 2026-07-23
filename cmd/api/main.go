@@ -3,11 +3,10 @@ package main
 import (
 	"go_bengkel/internal/config"
 	"go_bengkel/internal/handlers"
-	"go_bengkel/internal/middleware"
 	"go_bengkel/internal/repository"
+	"go_bengkel/internal/router"
 	"go_bengkel/internal/services"
-
-	"github.com/gin-gonic/gin"
+	"log"
 )
 
 func main() {
@@ -29,34 +28,11 @@ func main() {
 	dataServiceService := services.NewDataService(dataServiceRepo, vehicleRepo)
 	dataServiceHandler := handlers.NewServicesHandler(dataServiceService)
 
-	r := gin.Default()
-
-	public := r.Group("api/users")
-	{
-		public.POST("/", userHandler.Create)
-		public.POST("/login", userHandler.Login)
-	}
-
-	userRoute := r.Group("api/users")
-	userRoute.Use(middleware.AuthMiddleware())
-	{
-		userRoute.GET("/", userHandler.FindAll)
-		userRoute.GET("/:id", userHandler.FindByID)
-		userRoute.DELETE("/:id", userHandler.Delete)
-	}
-
-	vehicleRoute := r.Group("api/vehicle")
-	vehicleRoute.Use(middleware.AuthMiddleware())
-	{
-		vehicleRoute.POST("/", vehicleHandler.Create)
-		vehicleRoute.GET("/", vehicleHandler.FindAll)
-
-		vehicleRoute.POST("/:vehicle_id/dataservice", dataServiceHandler.Create)
-		vehicleRoute.GET("/:vehicle_id/dataservice", dataServiceHandler.FindAll)
-
-	}
-	// PR: tambahin validasi pada data service
-	// PR: perbaiki service handler
-
-	r.Run(":8600")
+	r := router.SetupRouter(userHandler, dataServiceHandler, vehicleHandler)
+	
+	log.Println("Server running at port 8600... ")
+	
+	if err := r.Run(":8600"); err != nil {
+		log.Fatalf("Gagal menjalankan server: %v", err)
+	}	
 }
