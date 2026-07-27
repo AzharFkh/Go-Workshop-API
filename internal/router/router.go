@@ -5,6 +5,9 @@ import (
 	"go_bengkel/internal/middleware"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "go_bengkel/docs"
 )
 
 func SetupRouter(
@@ -13,6 +16,8 @@ func SetupRouter(
 	vehicleHandler *handlers.VehicleHandler,
 ) *gin.Engine {
 	r := gin.Default()
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	public := r.Group("api/users")
 	{
@@ -28,14 +33,14 @@ func SetupRouter(
 		userRoute.DELETE("/:id", userHandler.Delete)
 	}
 
-	vehicleRoute := r.Group("api/vehicle")
+	vehicleRoute := r.Group("api/vehicles")
 	vehicleRoute.Use(middleware.AuthMiddleware())
 	{
 		vehicleRoute.POST("/", vehicleHandler.Create)
 		vehicleRoute.GET("/", vehicleHandler.FindAll)
 
-		vehicleRoute.POST("/:vehicle_id/dataservice", dataServiceHandler.Create)
-		vehicleRoute.GET("/:vehicle_id/dataservice", dataServiceHandler.FindAll)
+		vehicleRoute.POST("/:vehicle_id/dataservices", dataServiceHandler.Create)
+		vehicleRoute.GET("/:vehicle_id/dataservices", dataServiceHandler.FindAll)
 
 	}
 	// PR: tambahin validasi pada data service
@@ -43,5 +48,3 @@ func SetupRouter(
 
 	return r 
 }
-
-// refactor route here

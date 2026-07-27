@@ -1,0 +1,344 @@
+basePath: /api
+definitions:
+  dto.DataServiceRegister:
+    properties:
+      amount:
+        type: integer
+      part_name:
+        type: string
+    required:
+    - amount
+    - part_name
+    type: object
+  dto.DataServiceResponse:
+    properties:
+      amount:
+        type: integer
+      id:
+        type: integer
+      part_name:
+        type: string
+      vehicle_id:
+        type: integer
+    type: object
+  dto.UserLogin:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.UserRegister:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.VehicleRegister:
+    properties:
+      plate_num:
+        type: string
+      range:
+        type: integer
+      vehicle_type:
+        type: string
+    required:
+    - plate_num
+    - range
+    - vehicle_type
+    type: object
+  dto.VehicleResponse:
+    properties:
+      plate_num:
+        type: string
+      range:
+        type: integer
+      user_id:
+        type: integer
+      vehicle_id:
+        type: integer
+      vehicle_type:
+        type: string
+    required:
+    - plate_num
+    - range
+    - user_id
+    - vehicle_type
+    type: object
+host: localhost:8600
+info:
+  contact: {}
+  description: Backend API untuk aplikasi bengkel.
+  title: Go Bengkel API
+  version: "1.0"
+paths:
+  /users:
+    get:
+      description: Mengambil seluruh data user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get all users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      description: Membuat akun user baru.
+      parameters:
+      - description: Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserRegister'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Conflict
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register new user
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      description: Menghapus user berdasarkan ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete user
+      tags:
+      - Users
+    get:
+      description: Mengambil data user berdasarkan ID.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user by ID
+      tags:
+      - Users
+  /users/login:
+    post:
+      consumes:
+      - application/json
+      description: Melakukan autentikasi user dan mengembalikan JWT token.
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login user
+      tags:
+      - Authentication
+  /vehicles:
+    get:
+      description: Mengambil seluruh kendaraan milik user yang sedang login.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.VehicleResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all vehicles
+      tags:
+      - Vehicles
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan kendaraan baru milik user yang sedang login.
+      parameters:
+      - description: Vehicle Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VehicleRegister'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.VehicleResponse'
+      security:
+      - BearerAuth: []
+      summary: Create vehicle
+      tags:
+      - Vehicles
+  /vehicles/{vehicle_id}/dataservices:
+    get:
+      description: Mengambil seluruh riwayat service kendaraan milik user yang sedang
+        login.
+      parameters:
+      - description: Vehicle ID
+        in: path
+        name: vehicle_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DataServiceResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all service records
+      tags:
+      - Services
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data service untuk kendaraan milik user yang sedang
+        login.
+      parameters:
+      - description: Vehicle ID
+        in: path
+        name: vehicle_id
+        required: true
+        type: integer
+      - description: Service Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.DataServiceRegister'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DataServiceResponse'
+      security:
+      - BearerAuth: []
+      summary: Create service record
+      tags:
+      - Services
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

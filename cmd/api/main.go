@@ -9,6 +9,18 @@ import (
 	"log"
 )
 
+
+// @title           Go Bengkel API
+// @version         1.0
+// @description     Backend API untuk aplikasi bengkel.
+
+// @host            localhost:8600
+// @BasePath        /api
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
 func main() {
 
 	config.LoadEnv()

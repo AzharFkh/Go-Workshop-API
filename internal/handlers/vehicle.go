@@ -16,6 +16,17 @@ func NewVehicleHandler(vehicleService services.VehicleService) *VehicleHandler {
 	return &VehicleHandler{vehicleService}
 }
 
+// Create godoc
+//
+//	@Summary		Create vehicle
+//	@Description	Menambahkan kendaraan baru milik user yang sedang login.
+//	@Tags			Vehicles
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		dto.VehicleRegister	true	"Vehicle Data"
+//	@Success		201		{object}	dto.VehicleResponse
+//	@Router			/vehicles [post]
 func (h *VehicleHandler) Create(c *gin.Context) {
 
 	userIDRaw, exist := c.Get("userID")
@@ -56,6 +67,15 @@ func (h *VehicleHandler) Create(c *gin.Context) {
 	})
 }
 
+// FindAll godoc
+//
+//	@Summary		Get all vehicles
+//	@Description	Mengambil seluruh kendaraan milik user yang sedang login.
+//	@Tags			Vehicles
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Success		200	{object}	dto.VehicleResponse
+//	@Router			/vehicles [get]
 func (h *VehicleHandler) FindAll(c *gin.Context) {
 
 	userIDRaw, exist := c.Get("userID")

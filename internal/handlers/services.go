@@ -36,6 +36,18 @@ func (h *ServicesHandler) GetID(c *gin.Context) (uint, uint, bool) {
 	return userIDRaw.(uint), uint(vehicleID), true
 }
 
+// Create godoc
+//
+//	@Summary		Create service record
+//	@Description	Menambahkan data service untuk kendaraan milik user yang sedang login.
+//	@Tags			Services
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			vehicle_id	path		int						true	"Vehicle ID"
+//	@Param			request body dto.DataServiceRegister true "Service Data"
+//	@Success		201			{object}	dto.DataServiceResponse
+//	@Router			/vehicles/{vehicle_id}/dataservices [post]
 func (h *ServicesHandler) Create(c *gin.Context) {
 	userID, vehicleID, exists := h.GetID(c)
 
@@ -44,7 +56,7 @@ func (h *ServicesHandler) Create(c *gin.Context) {
 	}
 	var req dto.DataServiceRegister
 
-	if err := c.ShouldBind(&req); err != nil {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -65,6 +77,16 @@ func (h *ServicesHandler) Create(c *gin.Context) {
 	})
 }
 
+// FindAll godoc
+//
+//	@Summary		Get all service records
+//	@Description	Mengambil seluruh riwayat service kendaraan milik user yang sedang login.
+//	@Tags			Services
+//	@Security		BearerAuth
+//	@Produce		json
+//	@Param			vehicle_id	path	int	true	"Vehicle ID"
+//	@Success		200			{object}	dto.DataServiceResponse
+//	@Router			/vehicles/{vehicle_id}/dataservices [get]
 func (h *ServicesHandler) FindAll(c *gin.Context) {
 	userID, vehicleID, exists := h.GetID(c)
 
