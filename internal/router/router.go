@@ -43,8 +43,6 @@ func SetupRouter(
 		vehicleRoute.GET("/:vehicle_id/dataservices", dataServiceHandler.FindAll)
 
 	}
-	// PR: tambahin validasi pada data service
-	// PR: perbaiki service handler
 
 	return r 
 }
