@@ -75,6 +75,14 @@ func (h *ServicesHandler) FindAll(c *gin.Context) {
 	servicesData, err := h.dataService.GetDataServices(userID, vehicleID)
 
 	if err != nil {
+		// error ketika vehicleID tidak dimiliki oleh userID
+		if err.Error() == "vehicle not found or unauthorized" {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "vehicle not found or unauthorized",
+			})
+			return
+		}
+
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})

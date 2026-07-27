@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"errors"
 	"go_bengkel/internal/models"
 
 	"gorm.io/gorm"
@@ -25,12 +26,24 @@ func (r *serviceRepository) Create(dataService *models.DataService) error {
 
 func (r *serviceRepository) FindAll(userID uint, vehicleID uint) ([]models.DataService, error) {
 	var services []models.DataService
+	var ErrVehicleNotFound = errors.New("vehicle not found or unauthorized")
+	var vehicleCount int64
 
-	err := r.db.Table("data_services").
-		Select("data_services.*").
-		Joins("JOIN vehicles ON vehicles.id = data_services.vehicle_id").
-		Where("vehicles.user_id = ? AND data_services.vehicle_id = ?", userID, vehicleID).
-		Find(&services).Error
+	err := r.db.Table("vehicles").
+		Where("id = ? AND user_id = ?", vehicleID, userID).
+		Count(&vehicleCount).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	if vehicleCount == 0 {
+		return nil, ErrVehicleNotFound
+	}
+
+	err = r.db.Table("data_services").
+			Where("vehicle_id = ?", vehicleID).
+			Find(&services).Error
 
 	if err != nil {
 		return nil, err
