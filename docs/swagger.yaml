@@ -3,8 +3,10 @@ definitions:
   dto.DataServiceRegister:
     properties:
       amount:
+        example: 1
         type: integer
       part_name:
+        example: Oli Mesin
         type: string
     required:
     - amount
@@ -21,11 +23,19 @@ definitions:
       vehicle_id:
         type: integer
     type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        example: 'keterangan error yang terjadi, misal: ''invalid credentials'''
+        type: string
+    type: object
   dto.UserLogin:
     properties:
       email:
+        example: budi@email.com
         type: string
       password:
+        example: "1234"
         type: string
     required:
     - email
@@ -47,10 +57,13 @@ definitions:
   dto.VehicleRegister:
     properties:
       plate_num:
+        example: B1234XYZ
         type: string
       range:
+        example: 15000
         type: integer
       vehicle_type:
+        example: motor
         type: string
     required:
     - plate_num
@@ -78,7 +91,13 @@ definitions:
 host: localhost:8600
 info:
   contact: {}
-  description: Backend API untuk aplikasi bengkel.
+  description: |-
+    Backend API untuk aplikasi bengkel.
+
+    Cara menggunakan autentikasi pada Swagger:
+    1. Login menggunakan endpoint Authentication untuk mendapatkan token.
+    2. Klik tombol "Authorize" di atas.
+    3. Masukkan token dengan format: Bearer {spasi} {token}.
   title: Go Bengkel API
   version: "1.0"
 paths:
@@ -96,9 +115,7 @@ paths:
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get all users
@@ -126,15 +143,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "409":
           description: Conflict
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: Register new user
       tags:
       - Users
@@ -159,21 +172,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "500":
           description: Internal Server Error
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Delete user
@@ -198,15 +205,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "404":
           description: Not Found
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get user by ID
@@ -235,33 +238,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
         "401":
           description: Unauthorized
           schema:
-            additionalProperties:
-              type: string
-            type: object
+            $ref: '#/definitions/dto.ErrorResponse'
       summary: Login user
       tags:
       - Authentication
   /vehicles:
-    get:
-      description: Mengambil seluruh kendaraan milik user yang sedang login.
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dto.VehicleResponse'
-      security:
-      - BearerAuth: []
-      summary: Get all vehicles
-      tags:
-      - Vehicles
     post:
       consumes:
       - application/json
@@ -280,6 +265,18 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.VehicleResponse'
+        "400":
+          description: Bad Request - Invalid JSON
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized - User not found in context
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "409":
+          description: Conflict - Vehicle creation failed
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create vehicle
@@ -302,6 +299,18 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/dto.DataServiceResponse'
+        "401":
+          description: Unauthorized - User ID not found in context
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "404":
+          description: Not Found - Vehicle not found or unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error - Failed to fetch service records
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Get all service records
@@ -331,6 +340,18 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/dto.DataServiceResponse'
+        "400":
+          description: Bad Request - Invalid JSON payload
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized - User ID not found in context
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error - Failed to create service record
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
       security:
       - BearerAuth: []
       summary: Create service record

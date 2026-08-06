@@ -44,9 +44,12 @@ func (h *ServicesHandler) GetID(c *gin.Context) (uint, uint, bool) {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			vehicle_id	path		int						true	"Vehicle ID"
+//	@Param			vehicle_id	path 	int true	"Vehicle ID"
 //	@Param			request body dto.DataServiceRegister true "Service Data"
-//	@Success		201			{object}	dto.DataServiceResponse
+//	@Success		201 {object} dto.DataServiceResponse
+//	@Failure        400 {object} dto.ErrorResponse "Bad Request - Invalid JSON payload"
+//	@Failure        401 {object} dto.ErrorResponse "Unauthorized - User ID not found in context"
+//	@Failure        500 {object} dto.ErrorResponse "Internal Server Error - Failed to create service record"
 //	@Router			/vehicles/{vehicle_id}/dataservices [post]
 func (h *ServicesHandler) Create(c *gin.Context) {
 	userID, vehicleID, exists := h.GetID(c)
@@ -86,6 +89,9 @@ func (h *ServicesHandler) Create(c *gin.Context) {
 //	@Produce		json
 //	@Param			vehicle_id	path	int	true	"Vehicle ID"
 //	@Success		200			{object}	dto.DataServiceResponse
+//	@Failure        401         {object}    dto.ErrorResponse       "Unauthorized - User ID not found in context"
+//	@Failure        404         {object}    dto.ErrorResponse       "Not Found - Vehicle not found or unauthorized"
+//	@Failure        500         {object}    dto.ErrorResponse       "Internal Server Error - Failed to fetch service records"
 //	@Router			/vehicles/{vehicle_id}/dataservices [get]
 func (h *ServicesHandler) FindAll(c *gin.Context) {
 	userID, vehicleID, exists := h.GetID(c)

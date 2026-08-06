@@ -4,9 +4,9 @@ import "go_bengkel/internal/models"
 
 
 type VehicleRegister struct {
-	PlateNum    string `json:"plate_num" binding:"required"`
-	Range       int    `json:"range" binding:"required"` 
-	VehicleType string `json:"vehicle_type" binding:"required"`
+	PlateNum    string `json:"plate_num" binding:"required" example:"B1234XYZ"`
+	Range       int    `json:"range" binding:"required" example:"15000"` 
+	VehicleType string `json:"vehicle_type" binding:"required" example:"motor"`
 }
 
 func ToVehicleRegister(vehicle models.Vehicle) VehicleRegister {

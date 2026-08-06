@@ -7,12 +7,18 @@ import (
 	"go_bengkel/internal/router"
 	"go_bengkel/internal/services"
 	"log"
+	_ "go_bengkel/docs"
 )
 
 
 // @title           Go Bengkel API
 // @version         1.0
 // @description     Backend API untuk aplikasi bengkel.
+// @description     
+// @description     Cara menggunakan autentikasi pada Swagger:
+// @description     1. Login menggunakan endpoint Authentication untuk mendapatkan token.
+// @description     2. Klik tombol "Authorize" di atas.
+// @description     3. Masukkan token dengan format: Bearer {spasi} {token}.
 
 // @host            localhost:8600
 // @BasePath        /api

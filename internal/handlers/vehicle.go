@@ -26,6 +26,9 @@ func NewVehicleHandler(vehicleService services.VehicleService) *VehicleHandler {
 //	@Produce		json
 //	@Param			request	body		dto.VehicleRegister	true	"Vehicle Data"
 //	@Success		201		{object}	dto.VehicleResponse
+//	@Failure        400     {object}    dto.ErrorResponse   "Bad Request - Invalid JSON"
+//	@Failure        401     {object}    dto.ErrorResponse   "Unauthorized - User not found in context"
+//	@Failure        409     {object}    dto.ErrorResponse   "Conflict - Vehicle creation failed"
 //	@Router			/vehicles [post]
 func (h *VehicleHandler) Create(c *gin.Context) {
 
@@ -69,14 +72,17 @@ func (h *VehicleHandler) Create(c *gin.Context) {
 
 // FindAll godoc
 //
-//	@Summary		Get all vehicles
-//	@Description	Mengambil seluruh kendaraan milik user yang sedang login.
-//	@Tags			Vehicles
-//	@Security		BearerAuth
-//	@Produce		json
-//	@Success		200	{object}	dto.VehicleResponse
-//	@Router			/vehicles [get]
-func (h *VehicleHandler) FindAll(c *gin.Context) {
+// @Summary		Get all vehicles
+// @Description	Mengambil seluruh kendaraan milik user yang sedang login.
+// @Tags			Vehicles
+// @Security		BearerAuth
+// @Produce		json
+// @Success		200		{object}	dto.VehicleResponse
+// @Failure 	401     {object}	dto.ErrorResponse   "Unauthorized - User not found in context"
+// @Failure 	500     {object}	dto.ErrorResponse   "Internal Server Error - Failed to fetch vehicles"
+// @Router			/vehicles [get]
+
+func (h *VehicleHandler) FindAll(c *gin.Context) { 
 
 	userIDRaw, exist := c.Get("userID")
 
@@ -94,6 +100,7 @@ func (h *VehicleHandler) FindAll(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	responses := dto.ToVehicleResponses(vehicles)

@@ -3,8 +3,8 @@ package dto
 import "go_bengkel/internal/models"
 
 type DataServiceRegister struct {
-	PartName string `json:"part_name" binding:"required"`
-	Amount   int16  `json:"amount" binding:"required"`
+	PartName string `json:"part_name" binding:"required" example:"Oli Mesin"`
+	Amount   int16  `json:"amount" binding:"required" example:"1"`
 }
 
 func ToDataServiceRegister(dataService models.DataService) DataServiceRegister {

@@ -28,8 +28,8 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 //	@Produce		json
 //	@Param			request	body		dto.UserLogin	true	"Login Request"
 //	@Success		200		{object}	map[string]interface{}
-//	@Failure		400		{object}	map[string]string
-//	@Failure		401		{object}	map[string]string
+//	@Failure		400		{object}	dto.ErrorResponse
+//	@Failure		401		{object}	dto.ErrorResponse
 //	@Router			/users/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
 	var req dto.UserLogin
@@ -64,8 +64,8 @@ func (h *UserHandler) Login(c *gin.Context) {
 //	@Produce		json
 //	@Param			request	body		dto.UserRegister	true	"Register Request"
 //	@Success		201		{object}	map[string]interface{}
-//	@Failure		400		{object}	map[string]string
-//	@Failure		409		{object}	map[string]string
+//	@Failure		400		{object}	dto.ErrorResponse
+//	@Failure		409		{object}	dto.ErrorResponse
 //	@Router			/users [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var req dto.UserRegister
@@ -95,7 +95,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@Tags			Users
 //	@Produce		json
 //	@Success		200	{object}	map[string]interface{}
-//	@Failure		500	{object}	map[string]string
+//	@Failure		500	{object}	dto.ErrorResponse
 //	@Router			/users [get]
 //	@Security 		BearerAuth
 func (h *UserHandler) FindAll(c *gin.Context) {
@@ -121,8 +121,8 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 //	@Produce		json
 //	@Param			id	path		int	true	"User ID"
 //	@Success		200	{object}	map[string]interface{}
-//	@Failure		400	{object}	map[string]string
-//	@Failure		404	{object}	map[string]string
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
 //	@Router			/users/{id} [get]
 //	@Security 		BearerAuth
 func (h *UserHandler) FindByID(c *gin.Context) {
@@ -158,9 +158,9 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 //	@Produce		json
 //	@Param			id	path		int	true	"User ID"
 //	@Success		200	{object}	map[string]string
-//	@Failure		400	{object}	map[string]string
-//	@Failure		404	{object}	map[string]string
-//	@Failure		500	{object}	map[string]string
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
+//	@Failure		500	{object}	dto.ErrorResponse
 //	@Router			/users/{id} [delete]
 //	@Security 		BearerAuth
 func (h *UserHandler) Delete(c *gin.Context) {

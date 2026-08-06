@@ -41,10 +41,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -83,19 +80,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "409": {
                         "description": "Conflict",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -136,19 +127,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -189,19 +174,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -242,57 +221,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
             }
         },
         "/vehicles": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Mengambil seluruh kendaraan milik user yang sedang login.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Vehicles"
-                ],
-                "summary": "Get all vehicles",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dto.VehicleResponse"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -327,6 +274,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.VehicleResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid JSON",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - User not found in context",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict - Vehicle creation failed",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -360,6 +325,24 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dto.DataServiceResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - User ID not found in context",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found - Vehicle not found or unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to fetch service records",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
@@ -405,6 +388,24 @@ const docTemplate = `{
                         "schema": {
                             "$ref": "#/definitions/dto.DataServiceResponse"
                         }
+                    },
+                    "400": {
+                        "description": "Bad Request - Invalid JSON payload",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - User ID not found in context",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to create service record",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
                     }
                 }
             }
@@ -419,10 +420,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "amount": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 1
                 },
                 "part_name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "Oli Mesin"
                 }
             }
         },
@@ -443,6 +446,15 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string",
+                    "example": "keterangan error yang terjadi, misal: 'invalid credentials'"
+                }
+            }
+        },
         "dto.UserLogin": {
             "type": "object",
             "required": [
@@ -451,10 +463,12 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "budi@email.com"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234"
                 }
             }
         },
@@ -486,13 +500,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "plate_num": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "B1234XYZ"
                 },
                 "range": {
-                    "type": "integer"
+                    "type": "integer",
+                    "example": 15000
                 },
                 "vehicle_type": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "motor"
                 }
             }
         },
@@ -539,7 +556,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/api",
 	Schemes:          []string{},
 	Title:            "Go Bengkel API",
-	Description:      "Backend API untuk aplikasi bengkel.",
+	Description:      "Backend API untuk aplikasi bengkel.\n\nCara menggunakan autentikasi pada Swagger:\n1. Login menggunakan endpoint Authentication untuk mendapatkan token.\n2. Klik tombol \"Authorize\" di atas.\n3. Masukkan token dengan format: Bearer {spasi} {token}.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
