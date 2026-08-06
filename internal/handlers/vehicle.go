@@ -81,7 +81,6 @@ func (h *VehicleHandler) Create(c *gin.Context) {
 // @Failure 	401     {object}	dto.ErrorResponse   "Unauthorized - User not found in context"
 // @Failure 	500     {object}	dto.ErrorResponse   "Internal Server Error - Failed to fetch vehicles"
 // @Router			/vehicles [get]
-
 func (h *VehicleHandler) FindAll(c *gin.Context) { 
 
 	userIDRaw, exist := c.Get("userID")

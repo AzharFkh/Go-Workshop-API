@@ -247,6 +247,28 @@ paths:
       tags:
       - Authentication
   /vehicles:
+    get:
+      description: Mengambil seluruh kendaraan milik user yang sedang login.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.VehicleResponse'
+        "401":
+          description: Unauthorized - User not found in context
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error - Failed to fetch vehicles
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get all vehicles
+      tags:
+      - Vehicles
     post:
       consumes:
       - application/json

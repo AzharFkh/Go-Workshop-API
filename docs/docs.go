@@ -240,6 +240,41 @@ const docTemplate = `{
             }
         },
         "/vehicles": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Mengambil seluruh kendaraan milik user yang sedang login.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Vehicles"
+                ],
+                "summary": "Get all vehicles",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.VehicleResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - User not found in context",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to fetch vehicles",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
