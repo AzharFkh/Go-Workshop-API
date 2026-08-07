@@ -19,28 +19,30 @@ func SetupRouter(
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	public := r.Group("api/users")
+	api := r.Group("api/v1")
+
+	auth := api.Group("/auth")
 	{
-		public.POST("/", userHandler.Create)
-		public.POST("/login", userHandler.Login)
+		auth.POST("/login", userHandler.Login)
+	}
+	
+	users := api.Group("/users")
+	{
+		users.POST("/", userHandler.Create)
 	}
 
-	userRoute := r.Group("api/users")
-	userRoute.Use(middleware.AuthMiddleware())
+	protected := api.Group("")
+	protected.Use(middleware.AuthMiddleware())
 	{
-		userRoute.GET("/", userHandler.FindAll)
-		userRoute.GET("/:id", userHandler.FindByID)
-		userRoute.DELETE("/:id", userHandler.Delete)
-	}
+		protected.GET("/users", userHandler.FindAll)
+		protected.GET("/users/:id", userHandler.FindByID)
+		protected.DELETE("/users/:id", userHandler.Delete)
 
-	vehicleRoute := r.Group("api/vehicles")
-	vehicleRoute.Use(middleware.AuthMiddleware())
-	{
-		vehicleRoute.POST("/", vehicleHandler.Create)
-		vehicleRoute.GET("/", vehicleHandler.FindAll)
+		protected.POST("/vehicles", vehicleHandler.Create)
+		protected.GET("/vehicles", vehicleHandler.FindAll)
 
-		vehicleRoute.POST("/:vehicle_id/dataservices", dataServiceHandler.Create)
-		vehicleRoute.GET("/:vehicle_id/dataservices", dataServiceHandler.FindAll)
+		protected.POST("/vehicles/:vehicle_id/dataservices", dataServiceHandler.Create)
+		protected.GET("/vehicles/:vehicle_id/dataservices", dataServiceHandler.FindAll)
 
 	}
 
