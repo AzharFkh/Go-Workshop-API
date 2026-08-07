@@ -30,7 +30,7 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 //	@Success		200		{object}	map[string]interface{}
 //	@Failure		400		{object}	dto.ErrorResponse
 //	@Failure		401		{object}	dto.ErrorResponse
-//	@Router			/users/login [post]
+//	@Router			/auth/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
 	var req dto.UserLogin
 
@@ -66,7 +66,7 @@ func (h *UserHandler) Login(c *gin.Context) {
 //	@Success		201		{object}	map[string]interface{}
 //	@Failure		400		{object}	dto.ErrorResponse
 //	@Failure		409		{object}	dto.ErrorResponse
-//	@Router			/users [post]
+//	@Router			/user/register [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var req dto.UserRegister
 	if err := c.ShouldBindJSON(&req); err != nil {

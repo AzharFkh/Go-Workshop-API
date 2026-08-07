@@ -15,21 +15,30 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/users": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
+        "/auth/login": {
+            "post": {
+                "description": "Melakukan autentikasi user dan mengembalikan JWT token.",
+                "consumes": [
+                    "application/json"
                 ],
-                "description": "Mengambil seluruh data user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Users"
+                    "Authentication"
                 ],
-                "summary": "Get all users",
+                "summary": "Login user",
+                "parameters": [
+                    {
+                        "description": "Login Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UserLogin"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -38,14 +47,22 @@ const docTemplate = `{
                             "additionalProperties": true
                         }
                     },
-                    "500": {
-                        "description": "Internal Server Error",
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
                     }
                 }
-            },
+            }
+        },
+        "/user/register": {
             "post": {
                 "description": "Membuat akun user baru.",
                 "consumes": [
@@ -92,30 +109,21 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/login": {
-            "post": {
-                "description": "Melakukan autentikasi user dan mengembalikan JWT token.",
-                "consumes": [
-                    "application/json"
+        "/users": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
                 ],
+                "description": "Mengambil seluruh data user.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "Authentication"
+                    "Users"
                 ],
-                "summary": "Login user",
-                "parameters": [
-                    {
-                        "description": "Login Request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UserLogin"
-                        }
-                    }
-                ],
+                "summary": "Get all users",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -124,14 +132,8 @@ const docTemplate = `{
                             "additionalProperties": true
                         }
                     },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/dto.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/dto.ErrorResponse"
                         }
@@ -516,13 +518,16 @@ const docTemplate = `{
             ],
             "properties": {
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "budi@email.com"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "budi_admin"
                 },
                 "password": {
-                    "type": "string"
+                    "type": "string",
+                    "example": "1234"
                 }
             }
         },

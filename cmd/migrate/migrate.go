@@ -13,7 +13,9 @@ func main() {
 	config.ConnectDB()
 
 	err := config.DB.AutoMigrate(
-		&models.User{}, &models.DataService{}, &models.Vehicle{},
+		&models.User{}, 
+		&models.DataService{}, 
+		&models.Vehicle{},
 	)
 
 	if err != nil {

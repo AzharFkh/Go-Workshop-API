@@ -19,21 +19,17 @@ func SetupRouter(
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	api := r.Group("api/v1")
+	api := r.Group("/api")
 
 	auth := api.Group("/auth")
 	{
 		auth.POST("/login", userHandler.Login)
 	}
-	
-	users := api.Group("/users")
-	{
-		users.POST("/", userHandler.Create)
-	}
 
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
+		protected.POST("/user/register", userHandler.Create)
 		protected.GET("/users", userHandler.FindAll)
 		protected.GET("/users/:id", userHandler.FindByID)
 		protected.DELETE("/users/:id", userHandler.Delete)
