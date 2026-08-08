@@ -35,7 +35,9 @@ func main() {
 	db := config.DB
 
 	userRepo := repository.NewUserRepository(db)
-	userService := services.NewUserService(userRepo)
+	roleRepo := repository.NewRoleRepository(db)
+
+	userService := services.NewUserService(userRepo, roleRepo)
 	userHandler := handlers.NewUserHandler(userService)
 
 	vehicleRepo := repository.NewVehicleRepository(db)

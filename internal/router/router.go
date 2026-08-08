@@ -24,21 +24,26 @@ func SetupRouter(
 	auth := api.Group("/auth")
 	{
 		auth.POST("/login", userHandler.Login)
+		auth.POST("/register", userHandler.Create)
 	}
 
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		protected.POST("/user/register", userHandler.Create)
+		// protected.POST("/user/register", userHandler.Create)
 		protected.GET("/users", userHandler.FindAll)
 		protected.GET("/users/:id", userHandler.FindByID)
-		protected.DELETE("/users/:id", userHandler.Delete)
-
 		protected.POST("/vehicles", vehicleHandler.Create)
 		protected.GET("/vehicles", vehicleHandler.FindAll)
 
 		protected.POST("/vehicles/:vehicle_id/dataservices", dataServiceHandler.Create)
 		protected.GET("/vehicles/:vehicle_id/dataservices", dataServiceHandler.FindAll)
+	}
+
+	adminRole := protected.Group("")
+	adminRole.Use(middleware.RequiredRole("admin"))
+	{
+		adminRole.DELETE("/users/:id", userHandler.Delete)
 
 	}
 

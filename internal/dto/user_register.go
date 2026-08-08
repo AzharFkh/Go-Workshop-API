@@ -4,7 +4,6 @@ import (
 	"go_bengkel/internal/models"
 )
 
-
 type UserRegister struct {
 	Name     string `json:"name" binding:"required" example:"budi_admin"`
 	Email    string `json:"email" binding:"required,email" example:"budi@email.com"`

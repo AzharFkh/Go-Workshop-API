@@ -53,7 +53,7 @@ func (r *userRepository) Delete(user *models.User) error {
 func (r *userRepository) FindByEmail(email string) (*models.User, error) {
 	var user models.User
 
-	if err := r.db.First(&user, "email = ?", email).Error; err != nil {
+	if err := r.db.Preload("Role").First(&user, "email = ?", email).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound){
 			return nil, gorm.ErrRecordNotFound
 		}

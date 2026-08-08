@@ -12,6 +12,9 @@ type User struct {
 	Email    string `json:"email" binding:"required,email" gorm:"uniqueIndex:idx_email"`
 	Password string `json:"password" binding:"required"`
 
+	RoleID uint `json:"role_id"`
+	Role   Role `json:"role" gorm:"foreignKey:RoleID"`
+
 	// one to many
 	Vehicle []Vehicle `json:"vehicle" gorm:"foreignKey:UserID"`
 }

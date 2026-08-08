@@ -135,7 +135,7 @@ paths:
       summary: Login user
       tags:
       - Authentication
-  /user/register:
+  /auth/register:
     post:
       consumes:
       - application/json

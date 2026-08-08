@@ -10,7 +10,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// revisi :
 
 type UserService interface {
 	CreateUser(req dto.UserRegister) (*models.User, error)
@@ -22,12 +21,19 @@ type UserService interface {
 
 type userService struct {
 	repo repository.UserRepository
+	roleRepo repository.RoleRepository // for RBAC
 }
 
 // constructor
 
-func NewUserService(repo repository.UserRepository) UserService {
-	return &userService{repo}
+func NewUserService(
+	repo repository.UserRepository,
+	roleRepo repository.RoleRepository,
+) UserService {
+	return &userService{
+		repo: repo,
+		roleRepo: roleRepo,
+	}
 }
 
 // login
@@ -44,7 +50,10 @@ func (s *userService) Login(req dto.UserLogin) (string, error) {
 		return "", errors.New("invalid email or password")
 	}
 
-	token, err := utils.GenerateToken(user.ID)
+	token, err := utils.GenerateToken(utils.TokenPayload{
+		UserID: user.ID,
+		Role: user.Role.Name,
+	})
 	if err != nil {
 		return "", err
 	}
@@ -62,11 +71,15 @@ func (s *userService) CreateUser(req dto.UserRegister) (*models.User, error) {
 		return nil, err
 	}
 
+	// find default Role
+	role, err := s.roleRepo.FindByName("user") // set default as user
+
 	// masukan password ke req
 	user := models.User{
 		Name:     req.Name,
 		Email:    req.Email,
 		Password: string(hashedPassword),
+		RoleID: role.ID,
 	}
 
 	// kirim ke DB

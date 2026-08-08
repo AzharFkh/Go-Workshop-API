@@ -43,6 +43,7 @@ func AuthMiddleware() gin.HandlerFunc{
 		
 		// bisa ambil userID dari middleware
 		c.Set("userID", claims.UserID)
+		c.Set("role", claims.Role)
 		c.Next()
 
 	}

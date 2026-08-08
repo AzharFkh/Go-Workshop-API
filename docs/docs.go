@@ -62,7 +62,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/user/register": {
+        "/auth/register": {
             "post": {
                 "description": "Membuat akun user baru.",
                 "consumes": [
