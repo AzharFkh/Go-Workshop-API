@@ -14,9 +14,10 @@ import (
 type UserService interface {
 	CreateUser(req dto.UserRegister) (*models.User, error)
 	GetUsers() ([]models.User, error)
-	GetUserByID(id int) (*models.User, error)
-	DeleteUserByID(id int) error
+	GetUserByID(id uint) (*models.User, error)
+	DeleteUserByID(id uint) error
 	Login(req dto.UserLogin) (string, error)
+	ChangePassword(id uint, req dto.ChangePasswordRequest) error
 }
 
 type userService struct {
@@ -98,13 +99,13 @@ func (s *userService) GetUsers() ([]models.User, error) {
 
 // get user by id
 
-func (s *userService) GetUserByID(id int) (*models.User, error) {
+func (s *userService) GetUserByID(id uint) (*models.User, error) {
 	return s.repo.FindByID(id)
 }
 
 // delete user by id
 
-func (s *userService) DeleteUserByID(id int) error {
+func (s *userService) DeleteUserByID(id uint) error {
 	// mencari apakah user ada (tidak asal hapus)
 	user, err := s.repo.FindByID(id)
 
@@ -113,4 +114,28 @@ func (s *userService) DeleteUserByID(id int) error {
 	}
 
 	return s.repo.Delete(user)
+}
+
+// update password 
+
+func (s *userService) ChangePassword(id uint, req dto.ChangePasswordRequest) error {
+	// find user by id
+	user, err := s.repo.FindByID(id)
+	if err != nil{
+		return err
+	}
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword))
+	if err != nil {
+		return errors.New("incorrect old password")
+	}
+	
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	user.Password = string(hashedPassword)
+
+	return s.repo.Update(user)
 }

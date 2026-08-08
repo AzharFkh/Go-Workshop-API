@@ -126,7 +126,7 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 //	@Router			/users/{id} [get]
 //	@Security 		BearerAuth
 func (h *UserHandler) FindByID(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	tempID, err := strconv.Atoi(c.Param("id"))
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -134,6 +134,8 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 		})
 		return
 	}
+
+	id := uint(tempID)
 
 	user, err := h.userService.GetUserByID(id)
 	if err != nil {
@@ -164,13 +166,15 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 //	@Router			/users/{id} [delete]
 //	@Security 		BearerAuth
 func (h *UserHandler) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	tempID, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "invalid id",
 		})
 		return
 	}
+
+	id := uint(tempID)
 
 	if err := h.userService.DeleteUserByID(id); err != nil {
 
@@ -190,4 +194,28 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "user has been deleted",
 	})
+}
+
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	userID := c.GetUint("userID")
+
+	var req dto.ChangePasswordRequest
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	if err := h.userService.ChangePassword(userID, req); err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+        "message": "password changed successfully",
+    })
 }

@@ -30,8 +30,7 @@ func SetupRouter(
 	protected := api.Group("")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		// protected.POST("/user/register", userHandler.Create)
-		protected.GET("/users", userHandler.FindAll)
+		protected.PATCH("/users/me/password", userHandler.ChangePassword)
 		protected.GET("/users/:id", userHandler.FindByID)
 		protected.POST("/vehicles", vehicleHandler.Create)
 		protected.GET("/vehicles", vehicleHandler.FindAll)
@@ -43,6 +42,7 @@ func SetupRouter(
 	adminRole := protected.Group("")
 	adminRole.Use(middleware.RequiredRole("admin"))
 	{
+		adminRole.GET("/users", userHandler.FindAll)
 		adminRole.DELETE("/users/:id", userHandler.Delete)
 
 	}
