@@ -1,5 +1,15 @@
 basePath: /api
 definitions:
+  dto.ChangePasswordRequest:
+    properties:
+      new_password:
+        type: string
+      old_password:
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
   dto.DataServiceRegister:
     properties:
       amount:
@@ -250,6 +260,40 @@ paths:
       summary: Get user by ID
       tags:
       - Users
+  /users/me/password:
+    put:
+      consumes:
+      - application/json
+      description: Mengubah password untuk user yang sedang login.
+      parameters:
+      - description: Data Update Password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Change User Password
+      tags:
+      - Users
   /vehicles:
     get:
       description: Mengambil seluruh kendaraan milik user yang sedang login.
@@ -383,6 +427,8 @@ paths:
       summary: Create service record
       tags:
       - Services
+schemes:
+- http
 securityDefinitions:
   BearerAuth:
     in: header

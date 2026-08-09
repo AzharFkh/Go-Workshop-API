@@ -9,7 +9,8 @@ RUN go mod download
 
 # Copy source code dan build
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o backend-bengkel ./cmd/api
+RUN CGO_ENABLED=0 GOOS=linux go build -o backend-bengkel ./cmd/api/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o backend-bengkel ./cmd/migrate/migrate.go
 
 #  Runner
 FROM alpine:3.22

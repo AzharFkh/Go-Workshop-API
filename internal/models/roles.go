@@ -1,8 +1,6 @@
 package models
 
-import "gorm.io/gorm"
-
 type Role struct {
-	gorm.Model
+	ID   uint
 	Name string `gorm:"unique"` // admin, user
 }

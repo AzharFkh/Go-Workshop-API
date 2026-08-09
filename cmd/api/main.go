@@ -22,6 +22,7 @@ import (
 
 // @host            localhost:8600
 // @BasePath        /api
+// @schemes         http 
 
 // @securityDefinitions.apikey BearerAuth
 // @in header

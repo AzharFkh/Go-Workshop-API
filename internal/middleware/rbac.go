@@ -12,15 +12,12 @@ func RequiredRole(roles ...string) gin.HandlerFunc {
 
 		for _, role := range roles {
 			if userRole == role {
-				c.Next()
 				return 
 			}
 		}
 		
-		c.JSON(http.StatusForbidden, gin.H{
+		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 			"error": "forbidden",
 		})
-
-		c.Abort()
 	}
 }

@@ -24,7 +24,7 @@ func main() {
 		log.Fatal("Migration failed:", err)
 	}
 
-	seed.FeedData(config.DB)
+	seed.SetupAndSeedDatabase(config.DB)
 
 	log.Println("Migration and data sedding success")
 }

@@ -27,9 +27,9 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		dto.UserLogin	true	"Login Request"
-//	@Success		200		{object}	map[string]interface{}
-//	@Failure		400		{object}	dto.ErrorResponse
-//	@Failure		401		{object}	dto.ErrorResponse
+//	@Success		200		{object}	map[string]interface{} 
+//	@Failure		400		{object}	dto.ErrorResponse 
+//	@Failure		401		{object}	dto.ErrorResponse 
 //	@Router			/auth/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
 	var req dto.UserLogin
@@ -63,9 +63,9 @@ func (h *UserHandler) Login(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		dto.UserRegister	true	"Register Request"
-//	@Success		201		{object}	map[string]interface{}
-//	@Failure		400		{object}	dto.ErrorResponse
-//	@Failure		409		{object}	dto.ErrorResponse
+//	@Success		201		{object}	map[string]interface{} 
+//	@Failure		400		{object}	dto.ErrorResponse 
+//	@Failure		409		{object}	dto.ErrorResponse 
 //	@Router			/auth/register [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var req dto.UserRegister
@@ -94,8 +94,8 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@Description	Mengambil seluruh data user.
 //	@Tags			Users
 //	@Produce		json
-//	@Success		200	{object}	map[string]interface{}
-//	@Failure		500	{object}	dto.ErrorResponse
+//	@Success		200	{object}	map[string]interface{} 
+//	@Failure		500	{object}	dto.ErrorResponse 
 //	@Router			/users [get]
 //	@Security 		BearerAuth
 func (h *UserHandler) FindAll(c *gin.Context) {
@@ -104,6 +104,7 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	response := dto.ToUserResponses(users)
@@ -120,9 +121,9 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 //	@Tags			Users
 //	@Produce		json
 //	@Param			id	path		int	true	"User ID"
-//	@Success		200	{object}	map[string]interface{}
-//	@Failure		400	{object}	dto.ErrorResponse
-//	@Failure		404	{object}	dto.ErrorResponse
+//	@Success		200	{object}	map[string]interface{} 
+//	@Failure		400	{object}	dto.ErrorResponse 
+//	@Failure		404	{object}	dto.ErrorResponse 
 //	@Router			/users/{id} [get]
 //	@Security 		BearerAuth
 func (h *UserHandler) FindByID(c *gin.Context) {
@@ -196,6 +197,19 @@ func (h *UserHandler) Delete(c *gin.Context) {
 	})
 }
 
+// ChangePassword godoc
+//
+//  @Summary        Change User Password
+//  @Description    Mengubah password untuk user yang sedang login.
+//  @Tags           Users
+//  @Security       BearerAuth
+//  @Accept         json
+//  @Produce        json
+//  @Param          request body dto.ChangePasswordRequest true "Data Update Password"
+//  @Success        200 {object} map[string]string 
+//  @Failure        400 {object} dto.ErrorResponse 
+//  @Failure        401 {object} dto.ErrorResponse 
+//  @Router         /users/me/password [put]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
 	userID := c.GetUint("userID")
 
