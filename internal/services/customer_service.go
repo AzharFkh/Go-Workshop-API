@@ -13,7 +13,7 @@ import (
 
 type UserService interface {
 	CreateUser(req dto.UserRegister) (*models.User, error)
-	GetUsers() ([]models.User, error)
+	GetUsers(page int, limit int) (utils.PaginatedResult[models.User], error)
 	GetUserByID(id uint) (*models.User, error)
 	DeleteUserByID(id uint) error
 	Login(req dto.UserLogin) (string, error)
@@ -93,8 +93,17 @@ func (s *userService) CreateUser(req dto.UserRegister) (*models.User, error) {
 
 // get users
 
-func (s *userService) GetUsers() ([]models.User, error) {
-	return s.repo.FindAll()
+func (s *userService) GetUsers(page int, limit int) (utils.PaginatedResult[models.User], error) {
+	if page < 1{
+		page = 1
+	}
+
+	// set default limit
+	if limit < 3{
+		limit = 5
+	}
+
+	return s.repo.FindAll(page, limit)
 }
 
 // get user by id

@@ -94,12 +94,17 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@Description	Mengambil seluruh data user.
 //	@Tags			Users
 //	@Produce		json
+//	@Param			page	query 	int 	false	"page number (default: 1)"
+//	@param			limit	query 	int		false	"total data per page (default: 5)"
 //	@Success		200	{object}	map[string]interface{} 
 //	@Failure		500	{object}	dto.ErrorResponse 
 //	@Router			/users [get]
 //	@Security 		BearerAuth
-func (h *UserHandler) FindAll(c *gin.Context) {
-	users, err := h.userService.GetUsers()
+func (h *UserHandler) FindAll(c *gin.Context) {	
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "5"))
+
+	result, err := h.userService.GetUsers(page, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
@@ -107,11 +112,11 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 		return
 	}
 
-	response := dto.ToUserResponses(users)
+	userDTO := dto.ToUserResponses(result.Data)
 
-	c.JSON(http.StatusOK, gin.H{
-		"users": response,
-	})
+	response := dto.ToPaginatedResponse(userDTO, result)
+
+	c.JSON(http.StatusOK, response)
 }
 
 // FindByID godoc

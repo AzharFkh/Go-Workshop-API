@@ -179,6 +179,15 @@ paths:
   /users:
     get:
       description: Mengambil seluruh data user.
+      parameters:
+      - description: 'page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'total data per page (default: 5)'
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
