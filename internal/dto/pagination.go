@@ -10,11 +10,11 @@ type PaginationMeta struct {
 }
 
 type PaginatedResponse struct {
-	Data interface{}    `json:"data"`
+	Data any            `json:"data"`
 	Meta PaginationMeta `json:"metadata"`
 }
 
-func ToPaginatedResponse[T any](dtoData interface{}, result utils.PaginatedResult[T]) PaginatedResponse {
+func ToPaginatedResponse[T any](dtoData any, result utils.PaginatedResult[T]) PaginatedResponse {
 	return PaginatedResponse{
 		Data: dtoData,
 		Meta: PaginationMeta{

@@ -6,13 +6,9 @@ import (
 	"go_bengkel/internal/repository"
 )
 
-// masih kurang 3 fitur lagi yaa
-
 type VehicleService interface {
 	CreateVehicle(req dto.VehicleRegister, userID uint) (*models.Vehicle, error)
 	GetVehicle(userID uint) ([]models.Vehicle, error)
-	// GetVehicleByID(id uint, userID uint) (*models.Vehicle, error)
-	// DeleteVehicleByID(id uint, userID uint) error
 }
 
 type vehicleService struct {
@@ -20,17 +16,15 @@ type vehicleService struct {
 }
 
 func NewVehicleService(repo repository.VehicleRepository) VehicleService {
-	return &vehicleService{repo}
+	return &vehicleService{repo: repo}
 }
 
 func (s *vehicleService) CreateVehicle(req dto.VehicleRegister, userID uint) (*models.Vehicle, error) {
-
-	// mapping DTO to model
 	vehicle := models.Vehicle{
-		UserID:       userID,
-		PlateNum:     req.PlateNum,
-		Range:        req.Range,
-		Vehicle_Type: req.VehicleType,
+		UserID:      userID,
+		PlateNum:    req.PlateNum,
+		Range:       req.Range,
+		VehicleType: req.VehicleType,
 	}
 
 	if err := s.repo.Create(&vehicle); err != nil {
@@ -40,7 +34,6 @@ func (s *vehicleService) CreateVehicle(req dto.VehicleRegister, userID uint) (*m
 	return &vehicle, nil
 }
 
-func (s *vehicleService) GetVehicle(userID uint) ([]models.Vehicle, error){
-
+func (s *vehicleService) GetVehicle(userID uint) ([]models.Vehicle, error) {
 	return s.repo.FindAll(userID)
 }

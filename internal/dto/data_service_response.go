@@ -20,9 +20,8 @@ func ToDataServiceResponse(dataService models.DataService) DataServiceResponse {
 
 func ToDataServiceResponses(dataServices []models.DataService) []DataServiceResponse {
 	responses := make([]DataServiceResponse, 0, len(dataServices))
-
-	for _, dataService := range dataServices {
-		responses = append(responses, ToDataServiceResponse(dataService))
+	for _, ds := range dataServices {
+		responses = append(responses, ToDataServiceResponse(ds))
 	}
 	return responses
 }

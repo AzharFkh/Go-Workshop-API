@@ -2,10 +2,11 @@ package handlers
 
 import (
 	"errors"
-	"go_bengkel/internal/dto"
-	"go_bengkel/internal/services"
 	"net/http"
 	"strconv"
+
+	"go_bengkel/internal/dto"
+	"go_bengkel/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -16,7 +17,7 @@ type UserHandler struct {
 }
 
 func NewUserHandler(userService services.UserService) *UserHandler {
-	return &UserHandler{userService}
+	return &UserHandler{userService: userService}
 }
 
 // Login godoc
@@ -27,25 +28,24 @@ func NewUserHandler(userService services.UserService) *UserHandler {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		dto.UserLogin	true	"Login Request"
-//	@Success		200		{object}	map[string]interface{} 
-//	@Failure		400		{object}	dto.ErrorResponse 
-//	@Failure		401		{object}	dto.ErrorResponse 
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		400		{object}	dto.ErrorResponse
+//	@Failure		401		{object}	dto.ErrorResponse
 //	@Router			/auth/login [post]
 func (h *UserHandler) Login(c *gin.Context) {
 	var req dto.UserLogin
-
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	token, err := h.userService.Login(req)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": err.Error(),
-		})
+		if errors.Is(err, services.ErrInvalidCredentials) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -63,9 +63,9 @@ func (h *UserHandler) Login(c *gin.Context) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		dto.UserRegister	true	"Register Request"
-//	@Success		201		{object}	map[string]interface{} 
-//	@Failure		400		{object}	dto.ErrorResponse 
-//	@Failure		409		{object}	dto.ErrorResponse 
+//	@Success		201		{object}	map[string]interface{}
+//	@Failure		400		{object}	dto.ErrorResponse
+//	@Failure		409		{object}	dto.ErrorResponse
 //	@Router			/auth/register [post]
 func (h *UserHandler) Create(c *gin.Context) {
 	var req dto.UserRegister
@@ -76,15 +76,17 @@ func (h *UserHandler) Create(c *gin.Context) {
 
 	user, err := h.userService.CreateUser(req)
 	if err != nil {
-		c.JSON(http.StatusConflict, gin.H{"error": "email already exist"})
+		if errors.Is(err, services.ErrEmailAlreadyExists) {
+			c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	response := dto.ToUserResponse(*user)
-
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "user created",
-		"user":    response,
+		"user":    dto.ToUserResponse(*user),
 	})
 }
 
@@ -94,29 +96,24 @@ func (h *UserHandler) Create(c *gin.Context) {
 //	@Description	Mengambil seluruh data user.
 //	@Tags			Users
 //	@Produce		json
-//	@Param			page	query 	int 	false	"page number (default: 1)"
-//	@param			limit	query 	int		false	"total data per page (default: 5)"
-//	@Success		200	{object}	map[string]interface{} 
-//	@Failure		500	{object}	dto.ErrorResponse 
+//	@Param			page	query		int	false	"page number (default: 1)"
+//	@Param			limit	query		int	false	"total data per page (default: 5)"
+//	@Success		200		{object}	map[string]interface{}
+//	@Failure		500		{object}	dto.ErrorResponse
 //	@Router			/users [get]
-//	@Security 		BearerAuth
-func (h *UserHandler) FindAll(c *gin.Context) {	
+//	@Security		BearerAuth
+func (h *UserHandler) FindAll(c *gin.Context) {
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "5"))
 
 	result, err := h.userService.GetUsers(page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	userDTO := dto.ToUserResponses(result.Data)
-
-	response := dto.ToPaginatedResponse(userDTO, result)
-
-	c.JSON(http.StatusOK, response)
+	userDTOs := dto.ToUserResponses(result.Data)
+	c.JSON(http.StatusOK, dto.ToPaginatedResponse(userDTOs, result))
 }
 
 // FindByID godoc
@@ -126,35 +123,29 @@ func (h *UserHandler) FindAll(c *gin.Context) {
 //	@Tags			Users
 //	@Produce		json
 //	@Param			id	path		int	true	"User ID"
-//	@Success		200	{object}	map[string]interface{} 
-//	@Failure		400	{object}	dto.ErrorResponse 
-//	@Failure		404	{object}	dto.ErrorResponse 
+//	@Success		200	{object}	map[string]interface{}
+//	@Failure		400	{object}	dto.ErrorResponse
+//	@Failure		404	{object}	dto.ErrorResponse
 //	@Router			/users/{id} [get]
-//	@Security 		BearerAuth
+//	@Security		BearerAuth
 func (h *UserHandler) FindByID(c *gin.Context) {
-	tempID, err := strconv.Atoi(c.Param("id"))
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid id",
-		})
+	id, ok := parseUintParam(c, "id")
+	if !ok {
 		return
 	}
-
-	id := uint(tempID)
 
 	user, err := h.userService.GetUserByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	response := dto.ToUserResponse(*user)
-
 	c.JSON(http.StatusOK, gin.H{
-		"user": response,
+		"user": dto.ToUserResponse(*user),
 	})
 }
 
@@ -170,30 +161,19 @@ func (h *UserHandler) FindByID(c *gin.Context) {
 //	@Failure		404	{object}	dto.ErrorResponse
 //	@Failure		500	{object}	dto.ErrorResponse
 //	@Router			/users/{id} [delete]
-//	@Security 		BearerAuth
+//	@Security		BearerAuth
 func (h *UserHandler) Delete(c *gin.Context) {
-	tempID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid id",
-		})
+	id, ok := parseUintParam(c, "id")
+	if !ok {
 		return
 	}
 
-	id := uint(tempID)
-
 	if err := h.userService.DeleteUserByID(id); err != nil {
-
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "user not found",
-			})
-
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": "failed to delete user",
-			})
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
 		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete user"})
 		return
 	}
 
@@ -204,37 +184,43 @@ func (h *UserHandler) Delete(c *gin.Context) {
 
 // ChangePassword godoc
 //
-//  @Summary        Change User Password
-//  @Description    Mengubah password untuk user yang sedang login.
-//  @Tags           Users
-//  @Security       BearerAuth
-//  @Accept         json
-//  @Produce        json
-//  @Param          request body dto.ChangePasswordRequest true "Data Update Password"
-//  @Success        200 {object} map[string]string 
-//  @Failure        400 {object} dto.ErrorResponse 
-//  @Failure        401 {object} dto.ErrorResponse 
-//  @Router         /users/me/password [put]
+//	@Summary		Change User Password
+//	@Description	Mengubah password untuk user yang sedang login.
+//	@Tags			Users
+//	@Security		BearerAuth
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		dto.ChangePasswordRequest	true	"Data Update Password"
+//	@Success		200		{object}	map[string]string
+//	@Failure		400		{object}	dto.ErrorResponse
+//	@Failure		401		{object}	dto.ErrorResponse
+//	@Router			/users/me/password [patch]
 func (h *UserHandler) ChangePassword(c *gin.Context) {
-	userID := c.GetUint("userID")
+	userID, ok := getUserID(c)
+	if !ok {
+		return
+	}
 
 	var req dto.ChangePasswordRequest
-
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := h.userService.ChangePassword(userID, req); err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		if errors.Is(err, services.ErrIncorrectOldPassword) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-        "message": "password changed successfully",
-    })
+		"message": "password changed successfully",
+	})
 }

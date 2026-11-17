@@ -8,15 +8,17 @@ import (
 	"gorm.io/gorm"
 )
 
-var DB *gorm.DB
-
-func ConnectDB() {
-	var err error
+// ConnectDB initializes and returns a PostgreSQL database connection.
+func ConnectDB() *gorm.DB {
 	dsn := os.Getenv("DB_URL")
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
-	if err != nil {
-		log.Fatal("Failed to connect to database")
+	if dsn == "" {
+		log.Fatal("DB_URL environment variable is not set")
 	}
 
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		log.Fatalf("failed to connect to database: %v", err)
+	}
+
+	return db
 }

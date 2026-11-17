@@ -2,17 +2,20 @@ package services
 
 import (
 	"errors"
+	"strings"
+
 	"go_bengkel/internal/dto"
 	"go_bengkel/internal/models"
 	"go_bengkel/internal/repository"
 	"go_bengkel/internal/utils"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type UserService interface {
 	CreateUser(req dto.UserRegister) (*models.User, error)
-	GetUsers(page int, limit int) (utils.PaginatedResult[models.User], error)
+	GetUsers(page, limit int) (utils.PaginatedResult[models.User], error)
 	GetUserByID(id uint) (*models.User, error)
 	DeleteUserByID(id uint) error
 	Login(req dto.UserLogin) (string, error)
@@ -21,36 +24,27 @@ type UserService interface {
 
 type userService struct {
 	repo     repository.UserRepository
-	roleRepo repository.RoleRepository // for RBAC
+	roleRepo repository.RoleRepository
 }
 
-// constructor
-
-func NewUserService(
-	repo repository.UserRepository,
-	roleRepo repository.RoleRepository,
-) UserService {
+func NewUserService(repo repository.UserRepository, roleRepo repository.RoleRepository) UserService {
 	return &userService{
 		repo:     repo,
 		roleRepo: roleRepo,
 	}
 }
 
-// login
-
 func (s *userService) Login(req dto.UserLogin) (string, error) {
-	user, err := s.repo.FindByEmail(req.Email)
-
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	user, err := s.repo.FindByEmail(email)
 	if err != nil {
-		return "", errors.New("invalid email or password")
+		return "", ErrInvalidCredentials
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
-	if err != nil {
-		return "", errors.New("invalid email or password")
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return "", ErrInvalidCredentials
 	}
 
-	// payload bisa ditambah
 	token, err := utils.GenerateToken(utils.TokenPayload{
 		UserID: user.ID,
 		Role:   user.Role.Name,
@@ -62,66 +56,61 @@ func (s *userService) Login(req dto.UserLogin) (string, error) {
 	return token, nil
 }
 
-// create user
-
 func (s *userService) CreateUser(req dto.UserRegister) (*models.User, error) {
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+
+	_, err := s.repo.FindByEmail(email)
+	if err == nil {
+		return nil, ErrEmailAlreadyExists
+	}
+	if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-
 	if err != nil {
 		return nil, err
 	}
 
-	// find default Role
-	role, err := s.roleRepo.FindByName("user") // set default as user
-
-	if err !=nil {
+	role, err := s.roleRepo.FindByName("user")
+	if err != nil {
 		return nil, err
 	}
 
-	// masukan password ke req
 	user := models.User{
 		Name:     req.Name,
-		Email:    req.Email,
+		Email:    email,
 		Password: string(hashedPassword),
 		RoleID:   role.ID,
 	}
 
-	// kirim ke DB
 	if err := s.repo.Create(&user); err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			return nil, ErrEmailAlreadyExists
+		}
 		return nil, err
 	}
 
 	return &user, nil
 }
 
-// get users
-
-func (s *userService) GetUsers(page int, limit int) (utils.PaginatedResult[models.User], error) {
+func (s *userService) GetUsers(page, limit int) (utils.PaginatedResult[models.User], error) {
 	if page < 1 {
 		page = 1
 	}
-
-	// set default limit
-	if limit < 3 {
+	if limit < 1 {
 		limit = 5
 	}
 
 	return s.repo.FindAll(page, limit)
 }
 
-// get user by id
-
 func (s *userService) GetUserByID(id uint) (*models.User, error) {
 	return s.repo.FindByID(id)
 }
 
-// delete user by id
-
 func (s *userService) DeleteUserByID(id uint) error {
-	// mencari apakah user ada (tidak asal hapus)
 	user, err := s.repo.FindByID(id)
-
 	if err != nil {
 		return err
 	}
@@ -129,18 +118,14 @@ func (s *userService) DeleteUserByID(id uint) error {
 	return s.repo.Delete(user)
 }
 
-// update password
-
 func (s *userService) ChangePassword(id uint, req dto.ChangePasswordRequest) error {
-	// find user by id
 	user, err := s.repo.FindByID(id)
 	if err != nil {
 		return err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword))
-	if err != nil {
-		return errors.New("incorrect old password")
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.OldPassword)); err != nil {
+		return ErrIncorrectOldPassword
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
@@ -149,6 +134,5 @@ func (s *userService) ChangePassword(id uint, req dto.ChangePasswordRequest) err
 	}
 
 	user.Password = string(hashedPassword)
-
 	return s.repo.Update(user)
 }

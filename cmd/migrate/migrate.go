@@ -1,30 +1,28 @@
 package main
 
 import (
+	"log"
+
 	"go_bengkel/cmd/seed"
 	"go_bengkel/internal/config"
 	"go_bengkel/internal/models"
-	"log"
 )
 
 func main() {
-
 	config.LoadEnv()
+	db := config.ConnectDB()
 
-	config.ConnectDB()
-
-	err := config.DB.AutoMigrate(
+	err := db.AutoMigrate(
 		&models.Role{},
-		&models.User{}, 
+		&models.User{},
 		&models.Vehicle{},
-		&models.DataService{}, 
+		&models.DataService{},
 	)
-
 	if err != nil {
-		log.Fatal("Migration failed:", err)
+		log.Fatalf("migration failed: %v", err)
 	}
 
-	seed.SetupAndSeedDatabase(config.DB)
+	seed.SetupAndSeedDatabase(db)
 
-	log.Println("Migration and data sedding success")
+	log.Println("Migration and data seeding success")
 }

@@ -1,10 +1,11 @@
 package handlers
 
 import (
+	"errors"
+	"net/http"
+
 	"go_bengkel/internal/dto"
 	"go_bengkel/internal/services"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,26 +15,21 @@ type ServicesHandler struct {
 }
 
 func NewServicesHandler(dataService services.DataService) *ServicesHandler {
-	return &ServicesHandler{dataService}
+	return &ServicesHandler{dataService: dataService}
 }
 
-func (h *ServicesHandler) GetID(c *gin.Context) (uint, uint, bool) {
-	userIDRaw, exists := c.Get("userID")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "unauthorized",
-		})
+func (h *ServicesHandler) extractIDs(c *gin.Context) (uint, uint, bool) {
+	userID, ok := getUserID(c)
+	if !ok {
 		return 0, 0, false
 	}
 
-	vehicleID, err := strconv.Atoi(c.Param("vehicle_id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid vehicle_id",
-		})
+	vehicleID, ok := parseUintParam(c, "vehicle_id")
+	if !ok {
 		return 0, 0, false
 	}
-	return userIDRaw.(uint), uint(vehicleID), true
+
+	return userID, vehicleID, true
 }
 
 // Create godoc
@@ -44,39 +40,39 @@ func (h *ServicesHandler) GetID(c *gin.Context) (uint, uint, bool) {
 //	@Security		BearerAuth
 //	@Accept			json
 //	@Produce		json
-//	@Param			vehicle_id	path 	int true	"Vehicle ID"
-//	@Param			request body dto.DataServiceRegister true "Service Data"
-//	@Success		201 {object} dto.DataServiceResponse
-//	@Failure        400 {object} dto.ErrorResponse "Bad Request - Invalid JSON payload"
-//	@Failure        401 {object} dto.ErrorResponse "Unauthorized - User ID not found in context"
-//	@Failure        500 {object} dto.ErrorResponse "Internal Server Error - Failed to create service record"
+//	@Param			vehicle_id	path	int						true	"Vehicle ID"
+//	@Param			request		body	dto.DataServiceRegister	true	"Service Data"
+//	@Success		201			{object}	dto.DataServiceResponse
+//	@Failure		400			{object}	dto.ErrorResponse	"Bad Request - Invalid JSON payload"
+//	@Failure		401			{object}	dto.ErrorResponse	"Unauthorized - User ID not found in context"
+//	@Failure		403			{object}	dto.ErrorResponse	"Forbidden - Vehicle is not owned by user"
+//	@Failure		500			{object}	dto.ErrorResponse	"Internal Server Error - Failed to create service record"
 //	@Router			/vehicles/{vehicle_id}/dataservices [post]
 func (h *ServicesHandler) Create(c *gin.Context) {
-	userID, vehicleID, exists := h.GetID(c)
-
-	if !exists {
+	userID, vehicleID, ok := h.extractIDs(c)
+	if !ok {
 		return
 	}
+
 	var req dto.DataServiceRegister
-
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	servicesData, err := h.dataService.CreateDataService(req, userID, vehicleID)
+	record, err := h.dataService.CreateDataService(req, userID, vehicleID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		if errors.Is(err, services.ErrVehicleNotOwned) {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "data service is created",
-		"data":    dto.ToDataServiceResponse(*servicesData),
+		"data":    dto.ToDataServiceResponse(*record),
 	})
 }
 
@@ -87,39 +83,29 @@ func (h *ServicesHandler) Create(c *gin.Context) {
 //	@Tags			Services
 //	@Security		BearerAuth
 //	@Produce		json
-//	@Param			vehicle_id	path	int	true	"Vehicle ID"
+//	@Param			vehicle_id	path		int	true	"Vehicle ID"
 //	@Success		200			{object}	dto.DataServiceResponse
-//	@Failure        401         {object}    dto.ErrorResponse       "Unauthorized - User ID not found in context"
-//	@Failure        404         {object}    dto.ErrorResponse       "Not Found - Vehicle not found or unauthorized"
-//	@Failure        500         {object}    dto.ErrorResponse       "Internal Server Error - Failed to fetch service records"
+//	@Failure		401			{object}	dto.ErrorResponse	"Unauthorized - User ID not found in context"
+//	@Failure		404			{object}	dto.ErrorResponse	"Not Found - Vehicle not found or unauthorized"
+//	@Failure		500			{object}	dto.ErrorResponse	"Internal Server Error - Failed to fetch service records"
 //	@Router			/vehicles/{vehicle_id}/dataservices [get]
 func (h *ServicesHandler) FindAll(c *gin.Context) {
-	userID, vehicleID, exists := h.GetID(c)
-
-	if !exists {
+	userID, vehicleID, ok := h.extractIDs(c)
+	if !ok {
 		return
 	}
 
-	servicesData, err := h.dataService.GetDataServices(userID, vehicleID)
-
+	records, err := h.dataService.GetDataServices(userID, vehicleID)
 	if err != nil {
-		// error ketika vehicleID tidak dimiliki oleh userID
-		if err.Error() == "vehicle not found or unauthorized" {
-			c.JSON(http.StatusNotFound, gin.H{
-				"error": "vehicle not found or unauthorized",
-			})
+		if errors.Is(err, services.ErrVehicleNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 			return
 		}
-
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	responses := dto.ToDataServiceResponses(servicesData)
-
 	c.JSON(http.StatusOK, gin.H{
-		"data": responses,
+		"data": dto.ToDataServiceResponses(records),
 	})
 }

@@ -1,50 +1,42 @@
 package middleware
 
 import (
-	"go_bengkel/internal/utils"
 	"net/http"
 	"strings"
+
+	"go_bengkel/internal/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
-
-func AuthMiddleware() gin.HandlerFunc{
+func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
-
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "authorization header required",
 			})
-			c.Abort()
-			return 
+			return
 		}
 
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] != "Bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{
+		tokenString, ok := strings.CutPrefix(authHeader, "Bearer ")
+		if !ok || tokenString == "" {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid authorization format",
 			})
-			c.Abort()
-			return 
+			return
 		}
-
-		tokenString := parts[1]
 
 		claims, err := utils.ValidateToken(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 				"error": "invalid or expired token",
 			})
-			c.Abort()
-			return 
+			return
 		}
-		
-		// bisa ambil userID dari middleware
+
 		c.Set("userID", claims.UserID)
 		c.Set("role", claims.Role)
 		c.Next()
-
 	}
 }
